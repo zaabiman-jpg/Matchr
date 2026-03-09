@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matchr — CV Intelligence Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════════════════
+       LANDING
+       ════════════════════════════════════════════════════ -->
+  <section id="landing" class="page active">
+    <div class="landing__orb-1"></div>
+    <div class="landing__orb-2"></div>
+    <div class="landing__orb-3"></div>
+    <div class="landing__body">
+      <div class="landing__pill">
+        <span class="landing__pill-dot"></span>
+        <span class="landing__pill-text">CV Intelligence Platform</span>
+      </div>
+      <h1 class="heading-xl landing__heading">
+        Match talent<br>with <span class="italic">precision</span>
+      </h1>
+      <p class="text-body landing__subtitle">
+        AI-powered CV parsing, entity extraction, and intelligent
+        candidate-to-role matching — in seconds.
+      </p>
+      <div class="landing__roles">
+        <button class="role-btn role-btn--candidate" onclick="navigate('candidate-upload')">
+          <span class="role-btn__label">↗ I'm a Candidate</span>
+          <span class="role-btn__sub">Upload &amp; verify your CV</span>
+        </button>
+        <button class="role-btn role-btn--recruiter" onclick="navigate('recruiter-dashboard')">
+          <span class="role-btn__label">◈ I'm a Recruiter</span>
+          <span class="role-btn__sub">Post jobs &amp; rank talent</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════
+       CANDIDATE — UPLOAD
+       ════════════════════════════════════════════════════ -->
+  <section id="candidate-upload" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('landing')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--default">↗ Candidate</span>
+    </nav>
+    <div class="content">
+      <div class="container--narrow text-center">
+        <div class="steps" id="upload-steps"></div>
+        <h2 class="heading-lg mb-8">Upload your CV</h2>
+        <p class="text-body mb-40">
+          We'll extract key information using NER so you can review before submitting
+        </p>
+
+        <div id="upload-area">
+          <div class="upload-zone" id="drop-zone">
+            <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt" hidden>
+            <div class="upload-zone__icon">📄</div>
+            <p class="upload-zone__title">Drop your CV here or click to browse</p>
+            <p class="upload-zone__hint">PDF, DOC, DOCX, or TXT • Max 10MB</p>
+          </div>
+        </div>
+
+        <div id="processing-area" class="hidden">
+          <div class="processing-box">
+            <div class="spinner"></div>
+            <p class="processing-box__title">Parsing your CV...</p>
+            <p class="text-xs">Extracting entities with NER pipeline</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════
+       CANDIDATE — REVIEW
+       ════════════════════════════════════════════════════ -->
+  <section id="candidate-review" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('candidate-upload')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--default">↗ Candidate</span>
+    </nav>
+    <div class="content">
+      <div class="container--mid">
+        <div class="steps" id="review-steps"></div>
+
+        <div class="review-header">
+          <div>
+            <h2 class="heading-md mb-6">Review Extracted Data</h2>
+            <p class="text-sm">Edit any field before submitting • NER-extracted entities highlighted</p>
+          </div>
+          <button class="btn--copy" id="copy-btn" onclick="copyNER()">⎘ Copy to Clipboard</button>
+        </div>
+
+        <div class="card">
+          <!-- Personal Info -->
+          <div class="card__section">
+            <div class="section-label">Personal Information</div>
+            <div class="grid-2 mt-16">
+              <div class="field">
+                <label class="field__label">Full Name</label>
+                <input class="field__input" id="ner-name">
+              </div>
+              <div class="field">
+                <label class="field__label">Email</label>
+                <input class="field__input" id="ner-email">
+              </div>
+              <div class="field">
+                <label class="field__label">Phone</label>
+                <input class="field__input" id="ner-phone">
+              </div>
+              <div class="field">
+                <label class="field__label">Location</label>
+                <input class="field__input" id="ner-location">
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="card__section">
+            <div class="section-label">Professional Summary</div>
+            <textarea class="field__textarea mt-12" id="ner-summary" rows="3"></textarea>
+          </div>
+
+          <!-- Skills -->
+          <div class="card__section">
+            <div class="section-label">Skills</div>
+            <div class="skills-list" id="skills-list"></div>
+          </div>
+
+          <!-- Experience -->
+          <div class="card__section">
+            <div class="section-label">Experience</div>
+            <div id="experience-list"></div>
+          </div>
+
+          <!-- Education -->
+          <div class="card__section">
+            <div class="section-label">Education</div>
+            <div id="education-list"></div>
+          </div>
+        </div>
+
+        <div class="flex-end">
+          <button class="btn btn--secondary" onclick="navigate('candidate-upload')">Re-upload</button>
+          <button class="btn btn--primary" onclick="handleSubmitProfile()">Submit Profile →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════
+       CANDIDATE — DONE
+       ════════════════════════════════════════════════════ -->
+  <section id="candidate-done" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('landing')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--default">↗ Candidate</span>
+    </nav>
+    <div class="content">
+      <div class="container--narrow text-center" style="margin-top:80px">
+        <div class="steps" id="done-steps"></div>
+        <div class="done-icon">✓</div>
+        <h2 class="heading-lg mb-8">Profile Submitted</h2>
+        <p class="text-body done-text">
+          Your parsed CV has been matched against all active job postings.
+          Recruiters can now see your profile in their rankings.
+        </p>
+        <button class="btn btn--primary" onclick="navigate('landing')">← Back to Home</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════
+       RECRUITER — DASHBOARD
+       ════════════════════════════════════════════════════ -->
+  <section id="recruiter-dashboard" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('landing')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--accent">◈ Recruiter</span>
+    </nav>
+    <div class="content">
+      <div class="container">
+        <div class="dash-header">
+          <div>
+            <h2 class="heading-lg mb-6">Recruiter Dashboard</h2>
+            <p class="text-sm">Manage job postings and review matched candidates</p>
+          </div>
+          <button class="btn btn--primary" onclick="navigate('recruiter-create')">+ New Job Post</button>
+        </div>
+        <div class="grid-3 mb-32" id="dash-stats"></div>
+        <div id="job-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════
+       RECRUITER — CREATE JOB
+       ════════════════════════════════════════════════════ -->
+  <section id="recruiter-create" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('recruiter-dashboard')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--accent">◈ Recruiter</span>
+    </nav>
+    <div class="content">
+      <div class="container--narrow">
+        <h2 class="heading-md mb-6">Create Job Post</h2>
+        <p class="text-sm mb-40">
+          Define the role and required skills — candidates will be matched automatically
+        </p>
+        <div class="card card--padded">
+          <div class="flex-col">
+            <div class="field">
+              <label class="field__label">Job Title</label>
+              <input class="field__input" id="new-job-title" placeholder="e.g. Senior React Engineer">
+            </div>
+            <div class="field">
+              <label class="field__label">Department</label>
+              <input class="field__input" id="new-job-dept" placeholder="e.g. Engineering">
+            </div>
+            <div class="field">
+              <label class="field__label">Description</label>
+              <textarea class="field__textarea" id="new-job-desc" rows="4"
+                placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea>
+            </div>
+            <div class="field">
+              <label class="field__label">Required Skills (comma-separated)</label>
+              <input class="field__input" id="new-job-skills" placeholder="React, TypeScript, Node.js, AWS">
+            </div>
+            <div class="field">
+              <label class="field__label">Minimum Experience (years)</label>
+              <input class="field__input" id="new-job-exp" placeholder="e.g. 4" type="number">
+            </div>
+          </div>
+        </div>
+        <div class="flex-end">
+          <button class="btn btn--secondary" onclick="navigate('recruiter-dashboard')">Cancel</button>
+          <button class="btn btn--primary" onclick="createJob()">Publish Job →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════
+       RECRUITER — RANKINGS
+       ════════════════════════════════════════════════════ -->
+  <section id="recruiter-rankings" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('recruiter-dashboard')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--accent">◈ Recruiter</span>
+    </nav>
+    <div class="content">
+      <div class="container">
+        <button class="btn--ghost mb-8" onclick="navigate('recruiter-dashboard')">← All Jobs</button>
+        <div id="rankings-header" class="mb-32"></div>
+        <div id="rankings-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scripts — order matters: api.js first, then app.js -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
