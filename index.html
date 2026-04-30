@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matchr — CV Intelligence Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css?v=2">
+  
+</head>
+<body>
+
+  <!-- GLOBAL LOGOUT -->
+  <button id="global-logout" class="global-logout hidden" onclick="handleLogout()">
+    <span id="logout-email"></span> Log out →
+  </button>
+
+  <!-- ══════════════════════════════════════════════
+       1. AUTH (Homepage — Login / Signup)
+       ══════════════════════════════════════════════ -->
+  <section id="auth" class="page active">
+    <div class="auth-page">
+      <div class="auth-card">
+        <span class="nav-logo auth-logo">Matchr</span>
+        <p class="text-xs text-center mb-32" style="color:var(--stone)">AI-powered CV parsing &amp; candidate matching</p>
+
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Log In</button>
+          <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
+        </div>
+
+        <!-- Role picker (signup only) -->
+        <div id="auth-role-section" class="hidden">
+          <label class="field__label mb-6">I am a...</label>
+          <div class="auth-role-picker">
+            <button class="auth-role-btn active" data-role="candidate" onclick="pickAuthRole('candidate')">↗ Candidate</button>
+            <button class="auth-role-btn" data-role="recruiter" onclick="pickAuthRole('recruiter')">◈ Recruiter</button>
+          </div>
+        </div>
+
+        <!-- Company name (recruiter signup only) -->
+        <div id="auth-company-section" class="hidden">
+          <div class="field">
+            <label class="field__label">Company Name</label>
+            <input class="field__input" id="auth-company" placeholder="e.g. Acme Corp">
+          </div>
+        </div>
+
+        <div class="auth-form">
+          <div class="field">
+            <label class="field__label">Email</label>
+            <input class="field__input" id="auth-email" type="email" placeholder="you@email.com">
+          </div>
+          <div class="field">
+            <label class="field__label">Password</label>
+            <input class="field__input" id="auth-password" type="password" placeholder="Min 6 characters"
+              onkeydown="if(event.key==='Enter')handleAuth()">
+          </div>
+        </div>
+
+        <div id="auth-error" class="auth-error hidden"></div>
+
+        <button class="btn btn--primary auth-submit" id="auth-submit-btn" onclick="handleAuth()">
+          <span id="auth-btn-text">Log In</span>
+        </button>
+
+        <p class="auth-toggle">
+          <span id="auth-switch-text">Don't have an account?</span>
+          <a href="#" class="auth-link" id="auth-switch-link" onclick="toggleAuthMode(); return false">Sign up</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       2. CANDIDATE — Job Board
+       ══════════════════════════════════════════════ -->
+  <section id="candidate-jobs" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <div class="nav-right">
+        <button class="nav-link active" onclick="navigate('candidate-jobs')">Jobs</button>
+        <button class="nav-link" onclick="navigate('candidate-upload')">My CV</button>
+        <span class="badge badge--default">↗ Candidate</span>
+      </div>
+    </nav>
+    <div class="content">
+      <div class="container">
+        <h2 class="heading-lg mb-6">Job Board</h2>
+        <p class="text-sm mb-32">Browse open positions and apply with your CV</p>
+
+        <!-- Search & Sort -->
+        <div class="search-bar mb-32">
+          <input class="search-input" id="job-search" type="text" placeholder="Search by title, skill, or company..."
+            oninput="renderJobBoard()">
+          <select class="search-sort" id="job-sort" onchange="renderJobBoard()">
+            <option value="recent">Most Recent</option>
+            <option value="alpha">A – Z</option>
+          </select>
+        </div>
+
+        <div id="job-board-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       3. CANDIDATE — Upload / Manage CV
+       ══════════════════════════════════════════════ -->
+  <section id="candidate-upload" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <div class="nav-right">
+        <button class="nav-link" onclick="navigate('candidate-jobs')">Jobs</button>
+        <button class="nav-link active" onclick="navigate('candidate-upload')">My CV</button>
+        <span class="badge badge--default">↗ Candidate</span>
+      </div>
+    </nav>
+    <div class="content">
+      <div class="container--mid">
+        <h2 class="heading-lg mb-6">My CV</h2>
+        <p class="text-sm mb-32">Upload your CV once, reuse it for every application</p>
+
+        <!-- Existing CV preview (shown if CV exists) -->
+        <div id="cv-existing" class="hidden">
+          <div class="card card--padded mb-32">
+            <div class="flex-between mb-16">
+              <div class="section-label">Saved Profile</div>
+              <button class="btn--ghost" onclick="showUploadZone()">Upload New CV</button>
+            </div>
+            <div id="cv-preview-content"></div>
+          </div>
+          <button class="btn btn--primary" onclick="navigate('candidate-jobs')">← Browse Jobs</button>
+        </div>
+
+        <!-- Upload zone (shown if no CV or user wants new one) -->
+        <div id="cv-upload-section">
+          <div class="upload-zone" id="drop-zone">
+            <input type="file" id="file-input" accept=".pdf,.docx" hidden>
+            <div class="upload-zone__icon">📄</div>
+            <p class="upload-zone__title">Drop your CV here or click to browse</p>
+            <p class="upload-zone__hint">PDF or DOCX • Max 5MB</p>
+          </div>
+          <button class="btn--ghost" style="margin-top:20px" onclick="skipToManualEntry()">Or fill in manually →</button>
+        </div>
+
+        <!-- Processing -->
+        <div id="processing-area" class="hidden">
+          <div class="processing-box">
+            <div class="spinner"></div>
+            <p class="processing-box__title">Parsing your CV...</p>
+            <p class="text-xs">Extracting details with AI</p>
+          </div>
+        </div>
+
+        <!-- Edit form (shown after upload or manual entry) -->
+        <div id="cv-edit-form" class="hidden">
+          <div class="card">
+            <div class="card__section">
+              <div class="section-label">Personal Information</div>
+              <div class="grid-2 mt-16">
+                <div class="field"><label class="field__label">Full Name</label>
+                  <input class="field__input" id="cv-name" placeholder="e.g. Jordan Mitchell"></div>
+                <div class="field"><label class="field__label">Email</label>
+                  <input class="field__input" id="cv-email" placeholder="e.g. jordan@email.com"></div>
+                <div class="field"><label class="field__label">Phone</label>
+                  <input class="field__input" id="cv-phone" placeholder="e.g. +44 7700 123456"></div>
+                <div class="field"><label class="field__label">Location</label>
+                  <input class="field__input" id="cv-location" placeholder="e.g. London, UK"></div>
+              </div>
+            </div>
+            <div class="card__section">
+              <div class="section-label">Professional Summary</div>
+              <textarea class="field__textarea mt-12" id="cv-summary" rows="3"
+                placeholder="Brief overview of your experience..."></textarea>
+            </div>
+            <div class="card__section">
+              <div class="section-label">Skills</div>
+              <div class="skills-list" id="skills-list"></div>
+            </div>
+            <div class="card__section">
+              <div class="section-label">Experience</div>
+              <div class="field mt-16" style="max-width:200px">
+                <label class="field__label">Total Years</label>
+                <input class="field__input" id="cv-years" type="number" min="0" placeholder="e.g. 5">
+              </div>
+              <div id="cv-experience-list"></div>
+            </div>
+            <div class="card__section">
+              <div class="section-label">Education</div>
+              <div id="cv-education-list"></div>
+            </div>
+          </div>
+          <div class="flex-end">
+            <button class="btn btn--secondary" onclick="cancelCvEdit()">Cancel</button>
+            <button class="btn btn--primary" id="save-cv-btn" onclick="saveCvProfile()">Save Profile →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       4. CANDIDATE — Apply to Job
+       ══════════════════════════════════════════════ -->
+  <section id="candidate-apply" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('candidate-jobs')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--default">↗ Candidate</span>
+    </nav>
+    <div class="content">
+      <div class="container--mid">
+        <!-- Job details -->
+        <div id="apply-job-details"></div>
+
+        <!-- CV preview or upload prompt -->
+        <div id="apply-cv-section" class="mt-32"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       5. CANDIDATE — Application Done
+       ══════════════════════════════════════════════ -->
+  <section id="candidate-done" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--default">↗ Candidate</span>
+    </nav>
+    <div class="content">
+      <div class="container--narrow text-center" style="margin-top:80px">
+        <div class="done-icon">✓</div>
+        <h2 class="heading-lg mb-8">Application Submitted</h2>
+        <p class="text-body done-text">
+          Your application has been submitted. Your identity remains anonymous
+          to the recruiter until they shortlist you.
+        </p>
+        <button class="btn btn--primary" onclick="navigate('candidate-jobs')">Browse More Jobs →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       6. RECRUITER — Dashboard
+       ══════════════════════════════════════════════ -->
+  <section id="recruiter-dashboard" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <div class="nav-right">
+        <button class="nav-link active" onclick="navigate('recruiter-dashboard')">Dashboard</button>
+        <button class="btn btn--primary btn--sm" onclick="state.editingJobId=null;navigate('recruiter-create')">+ New Job</button>
+        <span class="badge badge--accent">◈ Recruiter</span>
+      </div>
+    </nav>
+    <div class="content">
+      <div class="container">
+        <h2 class="heading-lg mb-6" id="recruiter-greeting"></h2>
+        <p class="text-sm mb-32">Manage your job postings and review candidates</p>
+        <div class="grid-3 mb-32" id="dash-stats"></div>
+
+        <!-- Tabs: Active / Archived -->
+        <div class="tab-bar mb-16">
+          <button class="tab-btn active" id="tab-active" onclick="switchJobTab('active')">Active</button>
+          <button class="tab-btn" id="tab-archived" onclick="switchJobTab('archived')">Archived</button>
+        </div>
+        <div id="recruiter-job-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       7. RECRUITER — Create Job
+       ══════════════════════════════════════════════ -->
+  <section id="recruiter-create" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('recruiter-dashboard')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--accent">◈ Recruiter</span>
+    </nav>
+    <div class="content">
+      <div class="container--narrow">
+        <h2 class="heading-md mb-6" id="create-heading">Create Job Post</h2>
+        <p class="text-sm mb-32">Define the role — candidates will be matched automatically</p>
+        <div class="card card--padded">
+          <div class="flex-col">
+            <div class="grid-2">
+              <div class="field"><label class="field__label">Job Title *</label>
+                <input class="field__input" id="new-title" placeholder="e.g. Senior React Engineer"></div>
+              <div class="field"><label class="field__label">Department</label>
+                <input class="field__input" id="new-dept" placeholder="e.g. Engineering"></div>
+            </div>
+            <div class="grid-2">
+              <div class="field"><label class="field__label">Location</label>
+                <input class="field__input" id="new-location" placeholder="e.g. London, UK / Remote"></div>
+              <div class="field"><label class="field__label">Job Type</label>
+                <select class="field__input" id="new-type">
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Remote">Remote</option>
+                </select></div>
+            </div>
+            <div class="field"><label class="field__label">Salary Range (optional)</label>
+              <input class="field__input" id="new-salary" placeholder="e.g. £50,000 – £70,000"></div>
+            <div class="field"><label class="field__label">Description *</label>
+              <textarea class="field__textarea" id="new-desc" rows="5"
+                placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea></div>
+            <div class="field"><label class="field__label">Required Skills (comma-separated) *</label>
+              <input class="field__input" id="new-skills" placeholder="React, TypeScript, Node.js, AWS"></div>
+            <div class="field"><label class="field__label">Minimum Experience (years)</label>
+              <input class="field__input" id="new-exp" placeholder="e.g. 4" type="number"></div>
+          </div>
+        </div>
+        <div class="flex-end">
+          <button class="btn btn--secondary" onclick="navigate('recruiter-dashboard')">Cancel</button>
+          <button class="btn btn--primary" id="create-submit-btn" onclick="createJob()">Publish Job →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       8. RECRUITER — Job Rankings
+       ══════════════════════════════════════════════ -->
+  <section id="recruiter-job" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('recruiter-dashboard')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--accent">◈ Recruiter</span>
+    </nav>
+    <div class="content">
+      <div class="container">
+        <div id="rjob-header" class="mb-32"></div>
+        <div id="rjob-rankings"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       9. RECRUITER — Candidate Detail
+       ══════════════════════════════════════════════ -->
+  <section id="recruiter-candidate" class="page">
+    <nav class="nav">
+      <div class="nav-left">
+        <button class="nav-back" onclick="navigate('recruiter-job')">←</button>
+        <div class="nav-divider"></div>
+        <span class="nav-logo">Matchr</span>
+      </div>
+      <span class="badge badge--accent">◈ Recruiter</span>
+    </nav>
+    <div class="content">
+      <div class="container--mid">
+        <div id="candidate-detail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCRIPTS -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="js/api.js?v=2"></script>
+  <script src="js/app.js?v=2"></script>
+</body>
+</html>
